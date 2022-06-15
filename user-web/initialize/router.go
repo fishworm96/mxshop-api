@@ -11,7 +11,7 @@ func Routers() *gin.Engine {
 	Router := gin.Default()
 
 	zap.S().Info("配置用户相关的url")
-	ApiGroup := Router.Group("v1")
+	ApiGroup := Router.Group("/u/v1")
 	router.InitUserRouter(ApiGroup)
 
 	return Router
