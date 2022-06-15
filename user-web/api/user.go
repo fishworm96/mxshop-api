@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
+	"mxshop-api/user-web/global/response"
 	"mxshop-api/user-web/proto"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -68,15 +70,23 @@ func GetUserList(ctx *gin.Context) {
 
 	result := make([]interface{}, 0)
 	for _, value := range rsp.Data {
-		data := make(map[string]interface{})
+		// data := make(map[string]interface{})
 
-		data["id"] = value.Id
-		data["name"] = value.NickName
-		data["birthday"] = value.BirthDay
-		data["gender"] = value.Gender
-		data["mobile"] = value.Mobile
+		user := response.UserResponse{
+			Id: value.Id,
+			NickName: value.NickName,
+			// Birthday: time.Time(time.Unix(int64(value.BirthDay), 0)).Format("2006-01-02"),
+			Birthday: response.JsonTime(time.Unix(int64(value.BirthDay), 0)),
+			Gender: value.Gender,
+			Mobile: value.Mobile,
+		}
+		// data["id"] = value.Id
+		// data["name"] = value.NickName
+		// data["birthday"] = time.Time(time.Unix(int64(value.BirthDay), 0))
+		// data["gender"] = value.Gender
+		// data["mobile"] = value.Mobile
 
-		result = append(result, data)
+		result = append(result, user)
 	}
 	ctx.JSON(http.StatusOK, result)
 	zap.S().Debug("获取用户列表")

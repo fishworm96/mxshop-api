@@ -1,2 +1,0 @@
-# mxshop-api/user-web/api
-api\user.go:11:2: imported and not used: "golang.org/x/text/cases"
