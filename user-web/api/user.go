@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/global/response"
 	"mxshop-api/user-web/proto"
 	"net/http"
@@ -47,11 +48,8 @@ func HandlerGrpcErrorToHttp(err error, c *gin.Context) {
 }
 
 func GetUserList(ctx *gin.Context) {
-	ip := "127.0.0.1"
-	port := 50051
-
 	// 拨号连接用户grpc服务器
-	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", ip, port), grpc.WithInsecure())
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
 	if err != nil {
 		zap.S().Errorw("[GetUserList] 连接 [用户服务失败]", "msg", err.Error())
 	}
@@ -73,12 +71,12 @@ func GetUserList(ctx *gin.Context) {
 		// data := make(map[string]interface{})
 
 		user := response.UserResponse{
-			Id: value.Id,
+			Id:       value.Id,
 			NickName: value.NickName,
 			// Birthday: time.Time(time.Unix(int64(value.BirthDay), 0)).Format("2006-01-02"),
 			Birthday: response.JsonTime(time.Unix(int64(value.BirthDay), 0)),
-			Gender: value.Gender,
-			Mobile: value.Mobile,
+			Gender:   value.Gender,
+			Mobile:   value.Mobile,
 		}
 		// data["id"] = value.Id
 		// data["name"] = value.NickName

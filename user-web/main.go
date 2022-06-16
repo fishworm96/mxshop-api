@@ -9,10 +9,12 @@ import (
 )
 
 func main() {
-	port := 8021
-
 	// 初始化全局logger
-	global.InitLogger()
+	initialize.InitLogger()
+
+	// 初始化配置文件
+	initialize.InitConfig()
+	
 	// 初始化routers
 	Router := initialize.Routers()
 
@@ -22,8 +24,8 @@ func main() {
 		3.S函数和L函数很有用，提供了一个全局的安全访问logger的途径
 	*/
 
-	zap.S().Debugf("启动服务器,端口: %d", port)
-	if err := Router.Run(fmt.Sprintf(":%d", port)); err != nil {
+	zap.S().Debugf("启动服务器,端口: %d", global.ServerConfig.Port)
+	if err := Router.Run(fmt.Sprintf(":%d", global.ServerConfig.Port)); err != nil {
 		zap.S().Panic("启动失败", err.Error())
 	}
 }
