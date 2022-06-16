@@ -7,6 +7,7 @@ import (
 	"mxshop-api/user-web/global/response"
 	"mxshop-api/user-web/proto"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -56,9 +57,13 @@ func GetUserList(ctx *gin.Context) {
 	// 生成grcp的client并调用接口
 	userSrvClient := proto.NewUserClient(userConn)
 
+	pn := ctx.DefaultQuery("pn", "0")
+	pnInt, _ := strconv.Atoi(pn)
+	pSize := ctx.DefaultQuery("psize", "10")
+	psizeInt, _ := strconv.Atoi(pSize)
 	rsp, err := userSrvClient.GetUserList(context.Background(), &proto.PageInfo{
-		Pn:    0,
-		PSize: 0,
+		Pn:    uint32(pnInt),
+		PSize: uint32(psizeInt),
 	})
 	if err != nil {
 		zap.S().Errorw("[GetUserList] 查询 [用户列表] 失败")
