@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-
 func removeTopStruct(fileds map[string]string) map[string]string {
 	rsp := map[string]string{}
 	for field, err := range fileds {
@@ -125,5 +124,52 @@ func PassWordLogin(c *gin.Context) {
 	if err := c.ShouldBind(&passwordLoginForm); err != nil {
 		HandleValidator(c, err)
 		return
+	}
+
+	// 拨号连接用户grpc服务器
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
+	if err != nil {
+		zap.S().Errorw("[GetUserList] 连接 [用户服务失败]", "msg", err.Error())
+	}
+	// 生成grcp的client并调用接口
+	userSrvClient := proto.NewUserClient(userConn)
+
+	// 登录逻辑
+	if rsp, err := userSrvClient.GetUserByMobile(context.Background(), &proto.MobileRequest{
+		Mobile: passwordLoginForm.Mobile,
+	}); err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.NotFound:
+				c.JSON(http.StatusBadRequest, map[string]string{
+					"mobile": "用户不存在",
+				})
+			default:
+				c.JSON(http.StatusInternalServerError, map[string]string{
+					"mobile": "登录失败",
+				})
+			}
+			return
+		}
+	} else {
+		// 只是查询到用户了，并没有检查密码
+		if passRsp, pasErr := userSrvClient.CheckPassWord(context.Background(), &proto.PasswordCheckInfo{
+			Password:          passwordLoginForm.PassWord,
+			EncryptedPassword: rsp.PassWord,
+		}); pasErr != nil {
+			c.JSON(http.StatusInternalServerError, map[string]string{
+				"password": "登录失败",
+			})
+		} else {
+			if passRsp.Success {
+				c.JSON(http.StatusOK, map[string]string{
+					"msg": "登录成功",
+				})
+			} else {
+				c.JSON(http.StatusBadRequest, map[string]string{
+					"msg": "账号或密码错误",
+				})
+			}
+		}
 	}
 }
