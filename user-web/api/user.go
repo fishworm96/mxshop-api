@@ -3,19 +3,31 @@ package api
 import (
 	"context"
 	"fmt"
+	"mxshop-api/user-web/forms"
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/global/response"
 	"mxshop-api/user-web/proto"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+
+func removeTopStruct(fileds map[string]string) map[string]string {
+	rsp := map[string]string{}
+	for field, err := range fileds {
+		rsp[field[strings.Index(field, ".")+1:]] = err
+	}
+	return rsp
+}
 
 func HandlerGrpcErrorToHttp(err error, c *gin.Context) {
 	// 将grpc的code转换成http真的状态码
@@ -46,6 +58,18 @@ func HandlerGrpcErrorToHttp(err error, c *gin.Context) {
 			return
 		}
 	}
+}
+
+func HandleValidator(c *gin.Context, err error) {
+	errs, ok := err.(validator.ValidationErrors)
+	if !ok {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": err.Error(),
+		})
+	}
+	c.JSON(http.StatusBadRequest, gin.H{
+		"error": removeTopStruct(errs.Translate(global.Trans)),
+	})
 }
 
 func GetUserList(ctx *gin.Context) {
@@ -93,4 +117,13 @@ func GetUserList(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, result)
 	zap.S().Debug("获取用户列表")
+}
+
+func PassWordLogin(c *gin.Context) {
+	// 表单验证
+	passwordLoginForm := forms.PassWordListForm{}
+	if err := c.ShouldBind(&passwordLoginForm); err != nil {
+		HandleValidator(c, err)
+		return
+	}
 }
