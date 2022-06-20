@@ -133,6 +133,13 @@ func PassWordLogin(c *gin.Context) {
 		return
 	}
 
+	if store.Verify(passwordLoginForm.CaptchaId, passwordLoginForm.Captcha, true) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"captcha": "验证码错误",
+		})
+		return
+	}
+
 	// 拨号连接用户grpc服务器
 	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
 	if err != nil {
@@ -172,13 +179,13 @@ func PassWordLogin(c *gin.Context) {
 				// 生成token
 				j := middlewares.NewJWT()
 				claims := models.CustomClaims{
-					ID: uint(rsp.Id),
-					NickName: rsp.NickName,
+					ID:          uint(rsp.Id),
+					NickName:    rsp.NickName,
 					AuthorityId: uint(rsp.Role),
 					StandardClaims: jwt.StandardClaims{
-						NotBefore: time.Now().Unix(), // 签名时间
+						NotBefore: time.Now().Unix(),               // 签名时间
 						ExpiresAt: time.Now().Unix() + 60*60*24*30, // 30天过期
-						Issuer: "imooc",
+						Issuer:    "imooc",
 					},
 				}
 				token, err := j.CreateToken(claims)
@@ -190,10 +197,10 @@ func PassWordLogin(c *gin.Context) {
 				}
 
 				c.JSON(http.StatusOK, gin.H{
-					"id": rsp.Id,
-					"nick_name": rsp.NickName,
-					"token": token,
-					"expired_at": (time.Now().Unix() + 60*60*24*30)*1000,
+					"id":         rsp.Id,
+					"nick_name":  rsp.NickName,
+					"token":      token,
+					"expired_at": (time.Now().Unix() + 60*60*24*30) * 1000,
 				})
 			} else {
 				c.JSON(http.StatusBadRequest, map[string]string{

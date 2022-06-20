@@ -11,10 +11,11 @@ import (
 func Routers() *gin.Engine {
 	Router := gin.Default()
 	Router.Use(middlewares.Cors())
-	
+
 	zap.S().Info("配置用户相关的url")
 	ApiGroup := Router.Group("/u/v1")
 	router.InitUserRouter(ApiGroup)
+	router.InitBaseRouter(ApiGroup)
 
 	return Router
 }
