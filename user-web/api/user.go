@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"github.com/hashicorp/consul/api"
 )
 
 func removeTopStruct(fileds map[string]string) map[string]string {
@@ -75,8 +76,36 @@ func HandleValidator(c *gin.Context, err error) {
 }
 
 func GetUserList(ctx *gin.Context) {
+	// 从注册中心获取到用户服务的信息
+	cfg := api.DefaultConfig()
+	consuleInfo := global.ServerConfig.ConsulInfo
+	cfg.Address = fmt.Sprintf("%s:%d", consuleInfo.Host, consuleInfo.Port)
+
+	userSrvHost := ""
+	userSrvPort := 0
+	client, err := api.NewClient(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := client.Agent().ServicesWithFilter(fmt.Sprintf("Service == \"%s\"", global.ServerConfig.UserSrvInfo.Name))
+	// data, err := client.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, global.ServerConfig.UserSrvInfo.Name))
+	if err != nil {
+		panic(err)
+	}
+	for _, value := range data {
+		userSrvHost = value.Address
+		userSrvPort = value.Port
+		break
+	}
+	if userSrvHost == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"captcha": "用户服务不可达",
+		})
+	}
+
 	// 拨号连接用户grpc服务器
-	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", global.ServerConfig.UserSrvInfo.Host, global.ServerConfig.UserSrvInfo.Port), grpc.WithInsecure())
+	userConn, err := grpc.Dial(fmt.Sprintf("%s:%d", userSrvHost, userSrvPort), grpc.WithInsecure())
 	if err != nil {
 		zap.S().Errorw("[GetUserList] 连接 [用户服务失败]", "msg", err.Error())
 	}

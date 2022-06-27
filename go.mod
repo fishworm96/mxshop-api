@@ -5,7 +5,17 @@ go 1.18
 require google.golang.org/grpc v1.47.0
 
 require (
+	github.com/armon/go-metrics v0.3.10 // indirect
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-hclog v1.2.0 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/serf v0.9.7 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b // indirect
 )
 
@@ -19,6 +29,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/hashicorp/consul/api v1.13.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
