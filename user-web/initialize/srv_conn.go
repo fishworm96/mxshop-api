@@ -14,8 +14,8 @@ import (
 func InitSrvConn() {
 	// 从注册中心获取到用户服务的信息
 	cfg := api.DefaultConfig()
-	consuleInfo := global.ServerConfig.ConsulInfo
-	cfg.Address = fmt.Sprintf("%s:%d", consuleInfo.Host, consuleInfo.Port)
+	consulInfo := global.ServerConfig.ConsulInfo
+	cfg.Address = fmt.Sprintf("%s:%d", consulInfo.Host, consulInfo.Port)
 
 	userSrvHost := ""
 	userSrvPort := 0
@@ -24,8 +24,8 @@ func InitSrvConn() {
 		panic(err)
 	}
 
-	data, err := client.Agent().ServicesWithFilter(fmt.Sprintf("Service == \"%s\"", global.ServerConfig.UserSrvInfo.Name))
-	// data, err := client.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, global.ServerConfig.UserSrvInfo.Name))
+	// data, err := client.Agent().ServicesWithFilter(fmt.Sprintf("Service == \"%s\"", global.ServerConfig.UserSrvInfo.Name))
+	data, err := client.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, global.ServerConfig.UserSrvInfo.Name))
 	if err != nil {
 		panic(err)
 	}
