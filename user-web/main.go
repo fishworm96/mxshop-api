@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/initialize"
+	"mxshop-api/user-web/utils"
 
 	myvalidator "mxshop-api/user-web/validator"
 
 	"github.com/gin-gonic/gin/binding"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -30,6 +32,16 @@ func main() {
 
 	// 初始化srv连接
 	initialize.InitSrvConn()
+
+	viper.AutomaticEnv()
+	// 如果本地开发环境端口号固定，线上环境自动获取端口号
+	debug := viper.GetBool("MXSHOP_DEBUG")
+	if !debug {
+		port, err := utils.GetFreePort()
+		if err == nil {
+			global.ServerConfig.Port = port
+		}
+	}
 
 	// 注册校验器
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
